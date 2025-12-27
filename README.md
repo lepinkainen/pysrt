@@ -1,18 +1,24 @@
 # pysrt
 
-[![Build Status](https://secure.travis-ci.org/byroot/pysrt.png?branch=master)](http://travis-ci.org/byroot/pysrt)
-[![Coverage Status](https://coveralls.io/repos/byroot/pysrt/badge.png?branch=master)](https://coveralls.io/r/byroot/pysrt?branch=master)
-[![PyPI](https://img.shields.io/pypi/v/pysrt.svg)](https://crate.io/packages/pysrt/)
+[![PyPI](https://img.shields.io/pypi/v/pysrt.svg)](https://pypi.org/project/pysrt/)
 
 pysrt is a Python library used to edit or create SubRip files.
+
+## About This Fork
+
+This is a fork of [byroot/pysrt](https://github.com/byroot/pysrt) with the following enhancements:
+
+- **Subtitle validation**: Detect timing issues, overlaps, malformed entries, and control characters
+- **Overlap fixing**: Intelligently adjust subtitle timing to fix overlaps with configurable buffer
+- **Modern tooling**: Migrated to Python 3.11+ with uv, ruff, mypy, and task-based builds
 
 ## Foreword
 
 pysrt is mainly designed as a library, but if you are experiencing troubles with bad
 subtitles you can first try to use [ruby-osdb](https://github.com/byroot/ruby-osdb)
 which will try to find the best subtitle for your movie. If you are still unlucky
-pysrt also provides an `srt` command useful for shifting, splitting, rescaling, or
-breaking long lines in `.srt` files.
+pysrt also provides an `srt` command useful for shifting, splitting, rescaling,
+breaking long lines, validating, and fixing overlaps in `.srt` files.
 
 ## CLI Usage
 
@@ -30,6 +36,13 @@ srt -i rate 23.9 25 movie.srt
 
 # Break long lines
 srt break 42 movie.srt > wrapped.srt
+
+# Validate subtitle file
+srt validate movie.srt
+
+# Fix overlapping subtitles
+srt -i fix-overlaps movie.srt
+srt fix-overlaps --buffer 50 movie.srt > fixed.srt
 
 # Set output encoding
 srt -e iso-8859-1 shift 2s movie.srt > output.srt
@@ -111,4 +124,20 @@ Saving changes:
 
 ```python
 subs.save("other/path.srt", encoding="utf-8")
+```
+
+Validating:
+
+```python
+errors = subs.validate()
+if errors:
+    for error in errors:
+        print(f"#{error.position} [{error.error_type}] {error.message}")
+```
+
+Fixing overlaps:
+
+```python
+subs.fix_overlaps(buffer_ms=20)  # Fix overlaps with 20ms minimum gap
+subs.save("fixed.srt")
 ```

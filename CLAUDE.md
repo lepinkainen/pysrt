@@ -47,10 +47,16 @@ The library is built around three core classes in `pysrt/`:
 
 - **SubRipTime** (`srttime.py`): Time representation in HH:MM:SS,mmm format. Uses an `ordinal` (milliseconds) internally. Supports arithmetic operations and coercion from strings, ints, dicts, and datetime.time objects. Uses custom descriptors (`TimeItemDescriptor`) for hours/minutes/seconds/milliseconds properties.
 
+**Supporting modules:**
+
+- **validation** (`validation.py`): Validation framework with `ValidationError` and `ValidationOptions` dataclasses. Checks timing, duration, text length, overlaps, and control characters.
+
+- **timing** (`timing.py`): Timing utilities including `calculate_optimal_duration_ms()` for word-based duration calculation and `fix_overlapping_subtitles()` for intelligent overlap fixing (adapted from Lingarr).
+
 **Entry points:**
 - Library: `pysrt.open()`, `pysrt.from_string()`, `pysrt.stream()` (all delegated to SubRipFile class methods)
-- CLI: `srt` command defined in `commands.py` (shift, split, rate, break subcommands)
+- CLI: `srt` command defined in `commands.py` (shift, split, rate, break, validate, fix-overlaps subcommands)
 
 ## Testing
 
-Tests use pytest and are in `tests/`. Test data (.srt files) is in `tests/static/`. Tests cover encoding detection, BOM handling, serialization, slicing, and shifting.
+Tests use pytest and are in `tests/`. Test data (.srt files) is in `tests/static/`. Tests cover encoding detection, BOM handling, serialization, slicing, shifting, validation, and overlap fixing.
