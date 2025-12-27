@@ -4,6 +4,7 @@ from pysrt.srtexc import Error, InvalidItem, InvalidTimeString
 from pysrt.srtfile import SubRipFile
 from pysrt.srtitem import SubRipItem
 from pysrt.srttime import SubRipTime
+from pysrt.validation import ValidationError, ValidationOptions
 from pysrt.version import VERSION, VERSION_STRING
 
 __all__ = [
@@ -13,6 +14,8 @@ __all__ = [
     "Error",
     "InvalidItem",
     "InvalidTimeString",
+    "ValidationError",
+    "ValidationOptions",
     "VERSION",
     "VERSION_STRING",
 ]

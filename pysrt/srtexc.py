@@ -25,11 +25,3 @@ class InvalidItem(Error):
     """
 
     pass
-
-
-class InvalidIndex(InvalidItem):
-    """
-    Raised when parser fail to parse a sub title index
-    """
-
-    pass

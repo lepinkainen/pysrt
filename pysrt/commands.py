@@ -22,6 +22,9 @@ class TimeAwareArgumentParser(argparse.ArgumentParser):
     RE_TIME_REPRESENTATION = re.compile(r"^\-?(\d+[hms]{0,2}){1,4}$")
 
     def parse_args(self, args=None, namespace=None):
+        if args is None:
+            args = sys.argv[1:]
+        args = list(args)
         for index, arg in enumerate(args):
             match = self.RE_TIME_REPRESENTATION.match(arg)
             if match:
@@ -168,6 +171,28 @@ class SubRipShifter:
         break_parser.add_argument("length", action="store", type=int, help=self.LENGTH_HELP)
         break_parser.set_defaults(action=self.break_lines)
 
+        validate_parser = subparsers.add_parser(
+            "validate",
+            help="Validate subtitle file integrity",
+            epilog="Check for timing issues, overlaps, and malformed entries",
+            formatter_class=argparse.RawTextHelpFormatter,
+        )
+        validate_parser.set_defaults(action=self.validate_file)
+
+        fix_overlaps_parser = subparsers.add_parser(
+            "fix-overlaps",
+            help="Fix overlapping subtitles",
+            epilog="Adjust timing to prevent subtitle overlaps",
+            formatter_class=argparse.RawTextHelpFormatter,
+        )
+        fix_overlaps_parser.add_argument(
+            "--buffer",
+            type=int,
+            default=20,
+            help="Minimum gap between subtitles in milliseconds (default: 20)",
+        )
+        fix_overlaps_parser.set_defaults(action=self.fix_overlaps_action)
+
         parser.add_argument("file", action="store")
 
         return parser
@@ -232,6 +257,24 @@ class SubRipShifter:
             item.text = "\n".join(split_re.split(item.text)[1::2])
         self.input_file.write_into(self.output_file)
 
+    def validate_file(self):
+        """Validate subtitle file and print errors."""
+        errors = self.input_file.validate()
+        if errors:
+            print(f"Found {len(errors)} validation errors:")
+            for err in errors[:20]:  # Show first 20
+                print(f"  #{err.position:3d} [{err.error_type:12s}] {err.message}")
+            if len(errors) > 20:
+                print(f"  ... and {len(errors) - 20} more errors")
+            sys.exit(1)
+        else:
+            print("✓ Validation passed")
+
+    def fix_overlaps_action(self):
+        """Fix overlapping subtitles."""
+        self.input_file.fix_overlaps(buffer_ms=self.arguments.buffer)
+        self.input_file.write_into(self.output_file)
+
     @property
     def output_encoding(self):
         return self.arguments.output_encoding or self.input_file.encoding
@@ -239,11 +282,7 @@ class SubRipShifter:
     @property
     def input_file(self):
         if not hasattr(self, "_source_file"):
-            with open(self.arguments.file, "rb") as f:
-                content = f.read()
-                encoding = detect(content).get("encoding")
-                encoding = self.normalize_encoding(encoding)
-
+            encoding = self.detect_input_encoding()
             self._source_file = SubRipFile.open(
                 self.arguments.file, encoding=encoding, error_handling=SubRipFile.ERROR_LOG
             )
@@ -260,7 +299,18 @@ class SubRipShifter:
                 self._output_file = sys.stdout
         return self._output_file
 
+    def detect_input_encoding(self):
+        bom_encoding = SubRipFile._detect_encoding(self.arguments.file)
+        if bom_encoding != SubRipFile.DEFAULT_ENCODING:
+            return bom_encoding
+        with open(self.arguments.file, "rb") as f:
+            content = f.read()
+        detected_encoding = self.normalize_encoding(detect(content).get("encoding"))
+        return detected_encoding or bom_encoding
+
     def normalize_encoding(self, encoding):
+        if not encoding:
+            return None
         return encoding.lower().replace("-", "_")
 
 

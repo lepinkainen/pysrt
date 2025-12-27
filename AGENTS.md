@@ -34,7 +34,7 @@ and keep sample `.srt` files in `tests/static/`. For coverage runs (CI), use
 Recent history follows a conventional style like `feat: ...` or `fix: ...`.
 Keep messages short and imperative. Pull requests should include a summary, the
 commands used to test, and links to relevant issues. If behavior changes, update
-`README.rst` or CLI examples as needed.
+`README.md` or CLI examples as needed.
 
 ## Architecture Notes
 The library centers on list-like `SubRipFile` collections of `SubRipItem`

@@ -1,8 +1,8 @@
 [project]
 name = "pysrt"
-version = "1.1.2"
+version = "1.2.0"
 description = "SubRip (.srt) subtitle parser and writer"
-readme = "README.rst"
+readme = "README.md"
 license = "GPL-3.0-or-later"
 authors = [
     { name = "Jean Boussier", email = "jean.boussier@gmail.com" }

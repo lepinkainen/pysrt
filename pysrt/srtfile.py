@@ -133,6 +133,57 @@ class SubRipFile(UserList):
         for index, item in enumerate(self):
             item.index = index + 1
 
+    def validate(self, **kwargs):
+        """
+        Validate subtitle file integrity.
+
+        Args:
+            **kwargs: Passed to ValidationOptions (min_subtitle_count, min_text_length, etc.)
+
+        Returns:
+            List of ValidationError objects (empty list = valid)
+
+        Example:
+            >>> errors = subs.validate(min_duration_ms=1000, max_duration_secs=8)
+            >>> if errors:
+            ...     for err in errors:
+            ...         print(f"#{err.position}: {err.message}")
+        """
+        from pysrt.validation import ValidationOptions, validate_subtitles
+
+        options = ValidationOptions(**kwargs)
+        return validate_subtitles(self, options)
+
+    def fix_overlaps(self, buffer_ms=20, min_duration_ms=1500, max_duration_ms=6000):
+        """
+        Fix overlapping subtitles with intelligent timing adjustment.
+
+        Adjusts subtitle end times to prevent overlaps while maintaining readability.
+        Uses word-count-based optimal durations to make smart decisions.
+
+        Args:
+            buffer_ms: Minimum gap between subtitles (default 20ms)
+            min_duration_ms: Minimum subtitle duration (default 1500ms)
+            max_duration_ms: Maximum subtitle duration (default 6000ms)
+
+        Returns:
+            self (for method chaining)
+
+        Example:
+            >>> subs.fix_overlaps(buffer_ms=50)
+            >>> subs.shift(seconds=2).fix_overlaps()  # Method chaining
+        """
+        from pysrt.timing import fix_overlapping_subtitles
+
+        fix_overlapping_subtitles(
+            self,
+            buffer_ms=buffer_ms,
+            min_duration_ms=min_duration_ms,
+            max_duration_ms=max_duration_ms,
+            in_place=True,
+        )
+        return self
+
     @property
     def text(self):
         return "\n".join(i.text for i in self)
@@ -174,7 +225,17 @@ class SubRipFile(UserList):
         `source_file` -> Any iterable that yield unicode strings, like a file
             opened with `codecs.open()` or an array of unicode.
         """
-        self.eol = self._guess_eol(source_file)
+        if not (hasattr(source_file, "tell") and hasattr(source_file, "seek")):
+            source_iter = iter(source_file)
+            try:
+                first_line = next(source_iter)
+            except StopIteration:
+                self.eol = os.linesep
+                return self
+            self.eol = self._guess_eol([first_line])
+            source_file = chain([first_line], source_iter)
+        else:
+            self.eol = self._guess_eol(source_file)
         self.extend(self.stream(source_file, error_handling=error_handling))
         return self
 
@@ -258,14 +319,15 @@ class SubRipFile(UserList):
 
     @classmethod
     def _get_first_line(cls, string_iterable):
-        if hasattr(string_iterable, "tell"):
+        can_rewind = hasattr(string_iterable, "tell") and hasattr(string_iterable, "seek")
+        if can_rewind:
             previous_position = string_iterable.tell()
 
         try:
             first_line = next(iter(string_iterable))
         except StopIteration:
             return ""
-        if hasattr(string_iterable, "seek"):
+        if can_rewind:
             string_iterable.seek(previous_position)
 
         return first_line
