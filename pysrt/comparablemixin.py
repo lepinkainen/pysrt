@@ -1,4 +1,4 @@
-class ComparableMixin(object):
+class ComparableMixin:
     def _compare(self, other, method):
         try:
             return method(self._cmpkey(), other._cmpkey())

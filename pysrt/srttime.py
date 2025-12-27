@@ -1,17 +1,13 @@
-# -*- coding: utf-8 -*-
-"""
-SubRip's time format parser: HH:MM:SS,mmm
-"""
+"""SubRip's time format parser: HH:MM:SS,mmm"""
+
 import re
 from datetime import time
 
-from pysrt.srtexc import InvalidTimeString
 from pysrt.comparablemixin import ComparableMixin
-from pysrt.compat import str, basestring
+from pysrt.srtexc import InvalidTimeString
 
 
-class TimeItemDescriptor(object):
-    # pylint: disable-msg=R0903
+class TimeItemDescriptor:
     def __init__(self, ratio, super_ratio=0):
         self.ratio = int(ratio)
         self.super_ratio = int(super_ratio)
@@ -32,10 +28,10 @@ class TimeItemDescriptor(object):
 
 
 class SubRipTime(ComparableMixin):
-    TIME_PATTERN = '%02d:%02d:%02d,%03d'
-    TIME_REPR = 'SubRipTime(%d, %d, %d, %d)'
-    RE_TIME_SEP = re.compile(r'\:|\.|\,')
-    RE_INTEGER = re.compile(r'^(\d+)')
+    TIME_PATTERN = "%02d:%02d:%02d,%03d"
+    TIME_REPR = "SubRipTime(%d, %d, %d, %d)"
+    RE_TIME_SEP = re.compile(r"\:|\.|\,")
+    RE_INTEGER = re.compile(r"^(\d+)")
     SECONDS_RATIO = 1000
     MINUTES_RATIO = SECONDS_RATIO * 60
     HOURS_RATIO = MINUTES_RATIO * 60
@@ -51,11 +47,13 @@ class SubRipTime(ComparableMixin):
 
         All arguments are optional and have a default value of 0.
         """
-        super(SubRipTime, self).__init__()
-        self.ordinal = hours * self.HOURS_RATIO \
-                     + minutes * self.MINUTES_RATIO \
-                     + seconds * self.SECONDS_RATIO \
-                     + milliseconds
+        super().__init__()
+        self.ordinal = (
+            hours * self.HOURS_RATIO
+            + minutes * self.MINUTES_RATIO
+            + seconds * self.SECONDS_RATIO
+            + milliseconds
+        )
 
     def __repr__(self):
         return self.TIME_REPR % tuple(self)
@@ -67,7 +65,7 @@ class SubRipTime(ComparableMixin):
         return self.TIME_PATTERN % tuple(self)
 
     def _compare(self, other, method):
-        return super(SubRipTime, self)._compare(self.coerce(other), method)
+        return super()._compare(self.coerce(other), method)
 
     def _cmpkey(self):
         return self.ordinal
@@ -106,7 +104,7 @@ class SubRipTime(ComparableMixin):
         """
         if isinstance(other, SubRipTime):
             return other
-        if isinstance(other, basestring):
+        if isinstance(other, str):
             return cls.from_string(other)
         if isinstance(other, int):
             return cls.from_ordinal(other)
@@ -129,8 +127,8 @@ class SubRipTime(ComparableMixin):
 
         All arguments are optional and have a default value of 0.
         """
-        if 'ratio' in kwargs:
-            self *= kwargs.pop('ratio')
+        if "ratio" in kwargs:
+            self *= kwargs.pop("ratio")
         self += self.__class__(*args, **kwargs)
 
     @classmethod
@@ -166,12 +164,15 @@ class SubRipTime(ComparableMixin):
         """
         datetime.time -> SubRipTime corresponding to time object
         """
-        return cls(hours=source.hour, minutes=source.minute,
-            seconds=source.second, milliseconds=source.microsecond // 1000)
+        return cls(
+            hours=source.hour,
+            minutes=source.minute,
+            seconds=source.second,
+            milliseconds=source.microsecond // 1000,
+        )
 
     def to_time(self):
         """
         Convert SubRipTime instance into a pure datetime.time object
         """
-        return time(self.hours, self.minutes, self.seconds,
-                    self.milliseconds * 1000)
+        return time(self.hours, self.minutes, self.seconds, self.milliseconds * 1000)

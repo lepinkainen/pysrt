@@ -1,13 +1,10 @@
-# -*- coding: utf-8 -*-
-"""
-SubRip's subtitle parser
-"""
+"""SubRip's subtitle parser."""
 
-from pysrt.srtexc import InvalidItem, InvalidIndex
-from pysrt.srttime import SubRipTime
-from pysrt.comparablemixin import ComparableMixin
-from pysrt.compat import str, is_py2
 import re
+
+from pysrt.comparablemixin import ComparableMixin
+from pysrt.srtexc import InvalidItem
+from pysrt.srttime import SubRipTime
 
 
 class SubRipItem(ComparableMixin):
@@ -19,10 +16,11 @@ class SubRipItem(ComparableMixin):
     text -> unicode: text content for item.
     position -> unicode: raw srt/vtt "display coordinates" string
     """
-    ITEM_PATTERN = str('%s\n%s --> %s%s\n%s\n')
-    TIMESTAMP_SEPARATOR = '-->'
 
-    def __init__(self, index=0, start=None, end=None, text='', position=''):
+    ITEM_PATTERN = "%s\n%s --> %s%s\n%s\n"
+    TIMESTAMP_SEPARATOR = "-->"
+
+    def __init__(self, index=0, start=None, end=None, text="", position=""):
         try:
             self.index = int(index)
         except (TypeError, ValueError):  # try to cast as int, but it's not mandatory
@@ -39,26 +37,20 @@ class SubRipItem(ComparableMixin):
 
     @property
     def text_without_tags(self):
-        RE_TAG = re.compile(r'<[^>]*?>')
-        return RE_TAG.sub('', self.text)
+        RE_TAG = re.compile(r"<[^>]*?>")
+        return RE_TAG.sub("", self.text)
 
     @property
     def characters_per_second(self):
-        characters_count = len(self.text_without_tags.replace('\n', ''))
+        characters_count = len(self.text_without_tags.replace("\n", ""))
         try:
             return characters_count / (self.duration.ordinal / 1000.0)
         except ZeroDivisionError:
             return 0.0
 
     def __str__(self):
-        position = ' %s' % self.position if self.position.strip() else ''
-        return self.ITEM_PATTERN % (self.index, self.start, self.end,
-                                    position, self.text)
-    if is_py2:
-        __unicode__ = __str__
-
-        def __str__(self):
-            raise NotImplementedError('Use unicode() instead!')
+        position = f" {self.position}" if self.position.strip() else ""
+        return self.ITEM_PATTERN % (self.index, self.start, self.end, position, self.text)
 
     def _cmpkey(self):
         return (self.start, self.end)
@@ -81,12 +73,12 @@ class SubRipItem(ComparableMixin):
     def from_lines(cls, lines):
         if len(lines) < 2:
             raise InvalidItem()
-        lines = [l.rstrip() for l in lines]
+        lines = [line.rstrip() for line in lines]
         index = None
         if cls.TIMESTAMP_SEPARATOR not in lines[0]:
             index = lines.pop(0)
         start, end, position = cls.split_timestamps(lines[0])
-        body = '\n'.join(lines[1:])
+        body = "\n".join(lines[1:])
         return cls(index, start, end, body, position)
 
     @classmethod
@@ -95,7 +87,7 @@ class SubRipItem(ComparableMixin):
         if len(timestamps) != 2:
             raise InvalidItem()
         start, end_and_position = timestamps
-        end_and_position = end_and_position.lstrip().split(' ', 1)
+        end_and_position = end_and_position.lstrip().split(" ", 1)
         end = end_and_position[0]
-        position = end_and_position[1] if len(end_and_position) > 1 else ''
+        position = end_and_position[1] if len(end_and_position) > 1 else ""
         return (s.strip() for s in (start, end, position))

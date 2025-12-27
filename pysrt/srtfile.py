@@ -1,30 +1,27 @@
-# -*- coding: utf-8 -*-
+"""SubRip file handling."""
+
+import codecs
 import os
 import sys
-import codecs
-
-try:
-    from collections import UserList
-except ImportError:
-    from UserList import UserList
-
-from itertools import chain
+from collections import UserList
 from copy import copy
+from itertools import chain
 
 from pysrt.srtexc import Error
 from pysrt.srtitem import SubRipItem
-from pysrt.compat import str
 
-BOMS = ((codecs.BOM_UTF32_LE, 'utf_32_le'),
-        (codecs.BOM_UTF32_BE, 'utf_32_be'),
-        (codecs.BOM_UTF16_LE, 'utf_16_le'),
-        (codecs.BOM_UTF16_BE, 'utf_16_be'),
-        (codecs.BOM_UTF8, 'utf_8'))
-CODECS_BOMS = dict((codec, str(bom, codec)) for bom, codec in BOMS)
+BOMS = (
+    (codecs.BOM_UTF32_LE, "utf_32_le"),
+    (codecs.BOM_UTF32_BE, "utf_32_be"),
+    (codecs.BOM_UTF16_LE, "utf_16_le"),
+    (codecs.BOM_UTF16_BE, "utf_16_be"),
+    (codecs.BOM_UTF8, "utf_8"),
+)
+CODECS_BOMS = {codec: str(bom, codec) for bom, codec in BOMS}
 BIGGER_BOM = max(len(bom) for bom, encoding in BOMS)
 
 
-class SubRipFile(UserList, object):
+class SubRipFile(UserList):
     """
     SubRip file descriptor.
 
@@ -39,13 +36,14 @@ class SubRipFile(UserList, object):
         SubRipFile.open.
     encoding -> str: encoding used at file save. Default to utf-8.
     """
+
     ERROR_PASS = 0
     ERROR_LOG = 1
     ERROR_RAISE = 2
 
-    DEFAULT_ENCODING = 'utf_8'
+    DEFAULT_ENCODING = "utf_8"
 
-    def __init__(self, items=None, eol=None, path=None, encoding='utf-8'):
+    def __init__(self, items=None, eol=None, path=None, encoding="utf-8"):
         UserList.__init__(self, items or [])
         self._eol = eol
         self.path = path
@@ -59,8 +57,7 @@ class SubRipFile(UserList, object):
 
     eol = property(_get_eol, _set_eol)
 
-    def slice(self, starts_before=None, starts_after=None, ends_before=None,
-              ends_after=None):
+    def slice(self, starts_before=None, starts_after=None, ends_before=None, ends_after=None):
         """
         slice([starts_before][, starts_after][, ends_before][, ends_after]) \
 -> SubRipFile clone
@@ -138,10 +135,10 @@ class SubRipFile(UserList, object):
 
     @property
     def text(self):
-        return '\n'.join(i.text for i in self)
+        return "\n".join(i.text for i in self)
 
     @classmethod
-    def open(cls, path='', encoding=None, error_handling=ERROR_PASS):
+    def open(cls, path="", encoding=None, error_handling=ERROR_PASS):
         """
         open([path, [encoding]])
 
@@ -162,7 +159,7 @@ class SubRipFile(UserList, object):
         `source` -> a unicode instance or at least a str instance encoded with
         `sys.getdefaultencoding()`
         """
-        error_handling = kwargs.pop('error_handling', None)
+        error_handling = kwargs.pop("error_handling", None)
         new_file = cls(**kwargs)
         new_file.read(source.splitlines(True), error_handling=error_handling)
         return new_file
@@ -197,11 +194,11 @@ class SubRipFile(UserList, object):
             >>> import codecs
             >>> file = codecs.open('movie.srt', encoding='utf-8')
             >>> for sub in pysrt.stream(file):
-            ...     sub.text += "\nHello !"
-            ...     print unicode(sub)
+            ...     sub.text += "\\nHello !"
+            ...     print(str(sub))
         """
         string_buffer = []
-        for index, line in enumerate(chain(source_file, '\n')):
+        for index, line in enumerate(chain(source_file, "\n")):
             if line.strip():
                 string_buffer.append(line)
             else:
@@ -211,7 +208,7 @@ class SubRipFile(UserList, object):
                     try:
                         yield SubRipItem.from_lines(source)
                     except Error as error:
-                        error.args += (''.join(source), )
+                        error.args += ("".join(source),)
                         cls._handle_error(error, error_handling, index)
 
     def save(self, path=None, encoding=None, eol=None):
@@ -225,9 +222,8 @@ class SubRipFile(UserList, object):
         path = path or self.path
         encoding = encoding or self.encoding
 
-        save_file = codecs.open(path, 'w+', encoding=encoding)
-        self.write_into(save_file, eol=eol)
-        save_file.close()
+        with open(path, "w", encoding=encoding) as save_file:
+            self.write_into(save_file, eol=eol)
 
     def write_into(self, output_file, eol=None):
         """
@@ -242,8 +238,8 @@ class SubRipFile(UserList, object):
 
         for item in self:
             string_repr = str(item)
-            if output_eol != '\n':
-                string_repr = string_repr.replace('\n', output_eol)
+            if output_eol != "\n":
+                string_repr = string_repr.replace("\n", output_eol)
             output_file.write(string_repr)
             # Only add trailing eol if it's not already present.
             # It was kept in the SubRipItem's text before but it really
@@ -255,28 +251,28 @@ class SubRipFile(UserList, object):
     @classmethod
     def _guess_eol(cls, string_iterable):
         first_line = cls._get_first_line(string_iterable)
-        for eol in ('\r\n', '\r', '\n'):
+        for eol in ("\r\n", "\r", "\n"):
             if first_line.endswith(eol):
                 return eol
         return os.linesep
 
     @classmethod
     def _get_first_line(cls, string_iterable):
-        if hasattr(string_iterable, 'tell'):
+        if hasattr(string_iterable, "tell"):
             previous_position = string_iterable.tell()
 
         try:
             first_line = next(iter(string_iterable))
         except StopIteration:
-            return ''
-        if hasattr(string_iterable, 'seek'):
+            return ""
+        if hasattr(string_iterable, "seek"):
             string_iterable.seek(previous_position)
 
         return first_line
 
     @classmethod
     def _detect_encoding(cls, path):
-        file_descriptor = open(path, 'rb')
+        file_descriptor = open(path, "rb")
         first_chars = file_descriptor.read(BIGGER_BOM)
         file_descriptor.close()
 
@@ -290,7 +286,8 @@ class SubRipFile(UserList, object):
     @classmethod
     def _open_unicode_file(cls, path, claimed_encoding=None):
         encoding = claimed_encoding or cls._detect_encoding(path)
-        source_file = codecs.open(path, 'r', encoding=encoding)
+        # Use newline="" to preserve original line endings for EOL detection
+        source_file = open(path, encoding=encoding, newline="")
 
         # get rid of BOM if any
         possible_bom = CODECS_BOMS.get(encoding, None)
@@ -303,10 +300,10 @@ class SubRipFile(UserList, object):
     @classmethod
     def _handle_error(cls, error, error_handling, index):
         if error_handling == cls.ERROR_RAISE:
-            error.args = (index, ) + error.args
+            error.args = (index,) + error.args
             raise error
         if error_handling == cls.ERROR_LOG:
             name = type(error).__name__
-            sys.stderr.write('PySRT-%s(line %s): \n' % (name, index))
-            sys.stderr.write(error.args[0].encode('ascii', 'replace'))
-            sys.stderr.write('\n')
+            sys.stderr.write(f"PySRT-{name}(line {index}): \n")
+            sys.stderr.write(error.args[0].encode("ascii", "replace").decode("ascii"))
+            sys.stderr.write("\n")

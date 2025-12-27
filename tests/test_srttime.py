@@ -1,18 +1,13 @@
 #!/usr/bin/env python
+"""Tests for SubRipTime."""
 
-import os
-import sys
-from datetime import time
 import unittest
+from datetime import time
 
-file_path = os.path.join(os.path.dirname(__file__), '..')
-sys.path.insert(0, os.path.abspath(file_path))
-
-from pysrt import SubRipTime, InvalidTimeString
+from pysrt import InvalidTimeString, SubRipTime
 
 
 class TestSimpleTime(unittest.TestCase):
-
     def setUp(self):
         self.time = SubRipTime()
 
@@ -59,12 +54,12 @@ class TestSimpleTime(unittest.TestCase):
 
 class TestTimeParsing(unittest.TestCase):
     KNOWN_VALUES = (
-        ('00:00:00,000', (0, 0, 0, 0)),
-        ('00:00:00,001', (0, 0, 0, 1)),
-        ('00:00:02,000', (0, 0, 2, 0)),
-        ('00:03:00,000', (0, 3, 0, 0)),
-        ('04:00:00,000', (4, 0, 0, 0)),
-        ('12:34:56,789', (12, 34, 56, 789)),
+        ("00:00:00,000", (0, 0, 0, 0)),
+        ("00:00:00,001", (0, 0, 0, 1)),
+        ("00:00:02,000", (0, 0, 2, 0)),
+        ("00:03:00,000", (0, 3, 0, 0)),
+        ("04:00:00,000", (4, 0, 0, 0)),
+        ("12:34:56,789", (12, 34, 56, 789)),
     )
 
     def test_parsing(self):
@@ -76,14 +71,13 @@ class TestTimeParsing(unittest.TestCase):
             self.assertEqual(time_string, str(SubRipTime(*time_items)))
 
     def test_negative_serialization(self):
-        self.assertEqual('00:00:00,000', str(SubRipTime(-1, 2, 3, 4)))
+        self.assertEqual("00:00:00,000", str(SubRipTime(-1, 2, 3, 4)))
 
     def test_invalid_time_string(self):
-        self.assertRaises(InvalidTimeString, SubRipTime.from_string, 'hello')
+        self.assertRaises(InvalidTimeString, SubRipTime.from_string, "hello")
 
 
 class TestCoercing(unittest.TestCase):
-
     def test_from_tuple(self):
         self.assertEqual((0, 0, 0, 0), SubRipTime())
         self.assertEqual((0, 0, 0, 1), SubRipTime(milliseconds=1))
@@ -93,13 +87,14 @@ class TestCoercing(unittest.TestCase):
         self.assertEqual((1, 2, 3, 4), SubRipTime(1, 2, 3, 4))
 
     def test_from_dict(self):
-        self.assertEqual(dict(), SubRipTime())
-        self.assertEqual(dict(milliseconds=1), SubRipTime(milliseconds=1))
-        self.assertEqual(dict(seconds=2), SubRipTime(seconds=2))
-        self.assertEqual(dict(minutes=3), SubRipTime(minutes=3))
-        self.assertEqual(dict(hours=4), SubRipTime(hours=4))
-        self.assertEqual(dict(hours=1, minutes=2, seconds=3, milliseconds=4),
-            SubRipTime(1, 2, 3, 4))
+        self.assertEqual({}, SubRipTime())
+        self.assertEqual({"milliseconds": 1}, SubRipTime(milliseconds=1))
+        self.assertEqual({"seconds": 2}, SubRipTime(seconds=2))
+        self.assertEqual({"minutes": 3}, SubRipTime(minutes=3))
+        self.assertEqual({"hours": 4}, SubRipTime(hours=4))
+        self.assertEqual(
+            {"hours": 1, "minutes": 2, "seconds": 3, "milliseconds": 4}, SubRipTime(1, 2, 3, 4)
+        )
 
     def test_from_time(self):
         time_obj = time(1, 2, 3, 4000)
@@ -113,12 +108,11 @@ class TestCoercing(unittest.TestCase):
         self.assertTrue(SubRipTime(1, 2, 3, 0).to_time() != time_obj)
 
     def test_from_ordinal(self):
-        self.assertEqual(SubRipTime.from_ordinal(3600000), {'hours': 1})
+        self.assertEqual(SubRipTime.from_ordinal(3600000), {"hours": 1})
         self.assertEqual(SubRipTime(1), 3600000)
 
 
 class TestOperators(unittest.TestCase):
-
     def setUp(self):
         self.time = SubRipTime(1, 2, 3, 4)
 
@@ -137,14 +131,15 @@ class TestOperators(unittest.TestCase):
         self.assertEqual(self.time, 0)
 
     def test_mul(self):
-        self.assertEqual(self.time * 2,  SubRipTime(2, 4, 6, 8))
-        self.assertEqual(self.time * 0.5,  (0, 31, 1, 502))
+        self.assertEqual(self.time * 2, SubRipTime(2, 4, 6, 8))
+        self.assertEqual(self.time * 0.5, (0, 31, 1, 502))
 
     def test_imul(self):
         self.time *= 2
-        self.assertEqual(self.time,  (2, 4, 6, 8))
+        self.assertEqual(self.time, (2, 4, 6, 8))
         self.time *= 0.5
         self.assertEqual(self.time, (1, 2, 3, 4))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

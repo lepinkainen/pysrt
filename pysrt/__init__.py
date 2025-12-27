@@ -1,12 +1,20 @@
-from pysrt.srttime import SubRipTime
-from pysrt.srtitem import SubRipItem
-from pysrt.srtfile import SubRipFile
+"""pysrt - SubRip (.srt) subtitle parser and writer."""
+
 from pysrt.srtexc import Error, InvalidItem, InvalidTimeString
+from pysrt.srtfile import SubRipFile
+from pysrt.srtitem import SubRipItem
+from pysrt.srttime import SubRipTime
 from pysrt.version import VERSION, VERSION_STRING
 
 __all__ = [
-    'SubRipFile', 'SubRipItem', 'SubRipFile', 'SUPPORT_UTF_32_LE',
-    'SUPPORT_UTF_32_BE', 'InvalidItem', 'InvalidTimeString'
+    "SubRipFile",
+    "SubRipItem",
+    "SubRipTime",
+    "Error",
+    "InvalidItem",
+    "InvalidTimeString",
+    "VERSION",
+    "VERSION_STRING",
 ]
 
 ERROR_PASS = SubRipFile.ERROR_PASS
