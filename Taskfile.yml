@@ -65,4 +65,4 @@ tasks:
   install:
     desc: Install dependencies
     cmds:
-      - uv sync --dev
+      - uv sync --extra dev

@@ -10,7 +10,7 @@ pysrt is a Python library for parsing and editing SubRip (.srt) subtitle files. 
 
 ```bash
 # Install dependencies
-uv sync --dev
+uv sync --extra dev
 
 # Run all tests
 task test
