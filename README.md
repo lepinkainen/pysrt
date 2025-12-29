@@ -1,22 +1,20 @@
 # pysrt
 
-[![PyPI](https://img.shields.io/pypi/v/pysrt.svg)](https://pypi.org/project/pysrt/)
-
 pysrt is a Python library used to edit or create SubRip files.
 
 ## About This Fork
 
-This is a fork of [byroot/pysrt](https://github.com/byroot/pysrt) with the following enhancements:
+I needed a subtile library for [lepinkainen/subtrans](https://github.com/lepinkainen/subtrans) and used [byroot/pysrt](https://github.com/byroot/pysrt) for a while, but it was 4 years old and unmaintained, so I decided to fork it and modernize it a bit.
 
+This fork has the following enhancements:
+
+- **Modern tooling**: Migrated to Python 3.11+ with uv, ruff, mypy, and task-based builds
 - **Subtitle validation**: Detect timing issues, overlaps, malformed entries, and control characters
 - **Overlap fixing**: Intelligently adjust subtitle timing to fix overlaps with configurable buffer
-- **Modern tooling**: Migrated to Python 3.11+ with uv, ruff, mypy, and task-based builds
 
 ## Foreword
 
-pysrt is mainly designed as a library, but if you are experiencing troubles with bad
-subtitles you can first try to use [ruby-osdb](https://github.com/byroot/ruby-osdb)
-which will try to find the best subtitle for your movie. If you are still unlucky
+pysrt is mainly designed as a library. But for convenience,
 pysrt also provides an `srt` command useful for shifting, splitting, rescaling,
 breaking long lines, validating, and fixing overlaps in `.srt` files.
 
@@ -52,16 +50,6 @@ Notes:
 
 - `-i/--in-place` edits files in-place and creates a `.bak` backup (not supported for `split`).
 - `-e/--output-encoding` sets the output encoding for the written subtitles.
-
-## Installation
-
-pysrt is available on PyPI:
-
-```bash
-pip install pysrt
-```
-
-Requires Python 3.11+.
 
 ## Library Usage
 
