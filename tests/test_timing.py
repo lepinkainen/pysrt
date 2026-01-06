@@ -1,5 +1,3 @@
-import pytest
-
 from pysrt import SubRipFile, SubRipItem
 from pysrt.timing import calculate_optimal_duration_ms
 

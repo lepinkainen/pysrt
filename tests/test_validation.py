@@ -1,7 +1,4 @@
-import pytest
-
 from pysrt import SubRipFile, SubRipItem
-from pysrt.validation import ValidationError, ValidationOptions
 
 
 def test_valid_file_passes():
